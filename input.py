@@ -4,16 +4,21 @@ import numpy as np
 
 #returns input for nn with label
 def input():
-	sampled = []
+    insts = ['cel', 'cla', 'flu', 'gac', 'gel', 'org', 'pia', 'sax', 'tru', 'vio', 'voi']
+    sampled = []
+    labels = []
 
 	#gets data from wave files
-	for instrument in os.listdir('/mnt/hgfs/link'):
+    for instrument in os.listdir('/mnt/hgfs/link'):
 		for song in os.listdir('/mnt/hgfs/link/' + instrument)[:10]:
 		    data, samplerate = sf.read("/mnt/hgfs/link/" + instrument + "/" + song)
 		    x = Sample(instrument, data)
-		    sampled.append(x);
+		    sampled.append(x.data);
+		    ohv = [0] * 11
+		    ohv[insts.index(x.label)] = 1
+		    labels.append(ohv)
 
-	return sampled
+    return (sampled, np.asarray(labels))
 			
 
 #resizes numpy array to desired size

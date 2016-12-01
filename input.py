@@ -2,34 +2,45 @@ import soundfile as sf
 import os
 import numpy as np
 
+current_batch = 0
+
+data_path = '/mnt/hgfs/link/'
+insts = sorted(os.listdir(data_path))
+
 #returns input for nn with label
 def input():
-	sampled = []
+    samples = []
+    labels = []
 
 	#gets data from wave files
-	for instrument in os.listdir('/mnt/hgfs/link'):
-		for song in os.listdir('/mnt/hgfs/link/' + instrument)[:10]:
-		    data, samplerate = sf.read("/mnt/hgfs/link/" + instrument + "/" + song)
-		    x = Sample(instrument, data)
-		    sampled.append(x);
+    for instrument in insts:
+		for song in os.listdir(data_path + instrument)[:10]:
+		    data, samplerate = sf.read(data_path + instrument + "/" + song)
+		    
+		    sampled.append(data);
+		    ohv = [0] * 11
+		    ohv[insts.index(instrument)] = 1
+		    labels.append(ohv)
 
-	return sampled
-			
+    return (np.asarray(samples), np.asarray(labels))
+    
+def get_batch(size):
+    global current_batch
+    next_batch = current_batch + size
+    samples = []
+    labels = []
 
-#resizes numpy array to desired size
-def resize(data, size):
-	data_size = data.size/2
-	difference = data_size - size
-	remove = data_size/difference
-	for i in range(0, data_size):
-		if i%remove == 0:
-			np.delete(data, (i), axis = 0)
-	return data 
+	#gets data from wave files
+    for instrument in insts:
+		for song in os.listdir(data_path + instrument)[current_batch:next_batch]:
+		    data, samplerate = sf.read(data_path + instrument + "/" + song)
+		    
+		    samples.append(data);
+		    ohv = [0] * 11
+		    ohv[insts.index(instrument)] = 1
+		    labels.append(ohv)
+		    
+    current_batch = next_batch
 
+    return (samples, np.asarray(labels))
 
-
-#one sampel of music
-class Sample:
-	def __init__(self, l, d):
-		self.label = l
-		self.data = d

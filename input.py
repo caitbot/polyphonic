@@ -1,86 +1,53 @@
 import soundfile as sf 
 import os
 import numpy as np
+from random import shuffle
 
-current_batch = 0
-eval_batch = 0
-
-data_path = '/mnt/hgfs/link/'
-insts = sorted(os.listdir(data_path))
-
-#returns input for nn with label
-def input():
-    samples = []
-    labels = []
-
-	#gets data from wave files
-    for instrument in insts:
-		for song in os.listdir(data_path + instrument)[:10]:
-		    data, samplerate = sf.read(data_path + instrument + "/" + song)
-		    
-		    sampled.append(data);
-		    ohv = [0] * 11
-		    ohv[insts.index(instrument)] = 1
-		    labels.append(ohv)
-
-    return (np.asarray(samples), np.asarray(labels))
+class Sample:
+    data = []
+    label = []
     
-def get_batch(size):
+    def __init__(self, data, label, label_name):
+        self.data = data
+        self.label = label
+        self.label_name = label_name
+
+class InputData:
+    song_paths = []
+    current_batch = 0
+    data_path = '/mnt/hgfs/link/'
+    insts = ['cel', 'cla', 'flu', 'gac', 'gel', 'org', 'pia', 'sax', 'tru', 'vio', 'voi']
     
-    global current_batch
-    next_batch = current_batch + size
-    samples = []
-    labels = []
-
-	#gets data from wave files
-    for instrument in insts:
-        songs = os.listdir(data_path + instrument)
-        
-        if len(songs[current_batch:]) == 0:
-            skip
-        
-        if len(songs[current_batch:]) < size:
-            next_batch = current_batch + len(songs[current_batch:])
-        
-        for song in songs[current_batch:next_batch]:
-		    data, samplerate = sf.read(data_path + instrument + "/" + song)
-		    
-		    samples.append(data);
-		    ohv = [0] * 11
-		    ohv[insts.index(instrument)] = 1
-		    labels.append(ohv)
-		    
-    current_batch = next_batch
-
-    return (samples, np.asarray(labels))
+    def __init__(self):
+        for inst in self.insts:
+            for song in os.listdir(self.data_path + inst):
+                self.song_paths.append((inst + '/' + song, inst))
+                
+        shuffle(self.song_paths)
     
-def eval_get_batch(size):
-    
-    global eval_batch
-    next_batch = eval_batch + size
-    samples = []
-    labels = []
-
-	#gets data from wave files
-    for instrument in insts:
-        songs = os.listdir(data_path + instrument)
+    def next_batch(self, size):
         
-        if len(songs[eval_batch:]) == 0:
-            skip
+        next = []
         
-        if len(songs[eval_batch:]) < size:
-            next_batch = eval_batch + len(songs[eval_batch:])
+        if len(self.song_paths[self.current_batch:]) < size:
         
-        for song in songs[eval_batch:next_batch]:
-		    data, samplerate = sf.read(data_path + instrument + "/" + song)
-		    
-		    samples.append(data);
-		    ohv = [0] * 11
-		    ohv[insts.index(instrument)] = 1
-		    labels.append(ohv)
-		    
-    current_batch = next_batch
-
-    return (samples, np.asarray(labels))
+            next_batch = self.current_batch + len(songs[current_batch:])
+            
+            for path in self.song_paths[self.current_batch:next_batch]:
+                data, samplerate = sf.read(self.data_path + path[0])
+                next.append(Sample(data, path[1]))
+                
+        else:
+            next_batch = self.current_batch + size
+            
+            for path in self.song_paths[self.current_batch:next_batch]:
+                data, samplerate = sf.read(self.data_path + path[0])
+                ohv = [0] * 11
+                ohv[self.insts.index(path[1])] = 1
+                next.append(Sample(data, ohv, path[1]))
+                
+            self.current_batch += size
+            
+        return next
 
 

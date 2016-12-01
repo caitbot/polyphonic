@@ -7,26 +7,14 @@ def input():
 	sampled = []
 
 	#gets data from wave files
-	for instrument in os.listdir('./Training'):
-		for song in os.listdir('./Training/' + instrument):
-			data, samplerate = sf.read("./Training/" + instrument + "/" + song)
-			x = Sample(instrument, data)
-			sampled.append(x);
-
-	#makes sure all the songs have the same samples
-	minimum = sampled[0].data.size/2
-
-	#find minimum samples
-	for sample in sampled:
-		size = sample.data.size/2
-		if size<minimum:
-			minimum = size
-
-	for sample in sampled:
-		if sample.data.size/2> minimum:
-			sample.data = resize(sample.data, minimum)
+	for instrument in os.listdir('/mnt/hgfs/link'):
+		for song in os.listdir('/mnt/hgfs/link/' + instrument)[:10]:
+		    data, samplerate = sf.read("/mnt/hgfs/link/" + instrument + "/" + song)
+		    x = Sample(instrument, data)
+		    sampled.append(x);
 
 	return sampled
+			
 
 #resizes numpy array to desired size
 def resize(data, size):
